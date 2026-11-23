@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-image
+spec:
+  description: Build a container image from the application Dockerfile using Buildah.
+  params:
+    - name: IMAGE
+      type: string
+      description: Full image name, including registry and tag.
+  workspaces:
+    - name: source
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:v1.35
+      workingDir: $(workspaces.source.path)
+      securityContext:
+        privileged: true
+      script: |
+        #!/bin/sh
+        set -eu
+        buildah bud --format docker -f Dockerfile -t "$(params.IMAGE)" .
+        echo "Image built: $(params.IMAGE)"
